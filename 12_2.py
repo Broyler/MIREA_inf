@@ -1,5 +1,13 @@
 import turtle
 from math import sqrt, asin, degrees
+from enum import Enum
+
+
+class Shapes(Enum):
+    LINE = 1
+    RECTANGLE = 2
+    CIRCLE = 3
+    TRIANGLE = 4
 
 
 LINE_WIDTH = 2
@@ -8,6 +16,8 @@ INVERTED_SIN_60 = 2 / sqrt(3)
 HALF_OF_ANGLE = 30
 EQUALITERAL_ANGLE = 120
 STRAIGHT_ANGLE = 180
+FINISH_ACTION = len(Shapes) + 1
+
 
 t = turtle.Turtle()
 t.width(LINE_WIDTH)
@@ -69,7 +79,7 @@ def tri(x1,y1,x2,y2):
 
 while True:
     ch = input("Выберите фигуру:\n1 - Отрезок\n2 - Прямоугольник\n3 - Круг\n4 - Равносторонний треугольник\n5 - Нарисовать\n")
-    if ch == "1":
+    if ch == str(Shapes.LINE.value):
         try:
             x1 = int(input("X1 = "))
             y1 = int(input("Y1 = "))
@@ -81,7 +91,7 @@ while True:
         t.color("#27083d")
         line(x1,y1,x2,y2)
 
-    elif ch == "2":
+    elif ch == str(Shapes.RECTANGLE.value):
         try:
             x1 = int(input("X1 = "))
             y1 = int(input("Y1 = "))
@@ -93,7 +103,7 @@ while True:
         t.color("#00add7")
         rect(x1,y1,x2,y2)
 
-    elif ch == "3":
+    elif ch == str(Shapes.CIRCLE.value):
         try:
             x1 = int(input("X1 = "))
             y1 = int(input("Y1 = "))
@@ -104,7 +114,7 @@ while True:
         t.color("#c1300d")
         circ(x1,y1,R)
 
-    elif ch == "4":
+    elif ch == str(Shapes.TRIANGLE.value):
         try:
             x1 = int(input("X1 = "))
             y1 = int(input("Y1 = "))
@@ -116,7 +126,7 @@ while True:
         t.color("#e6d500")
         tri(x1,y1,x2,y2)
 
-    elif ch == "5":
+    elif ch == str(FINISH_ACTION):
         break
 
     else:
