@@ -1,6 +1,9 @@
+from __future__ import annotations
 from turtle import *
 from math import sqrt, asin, degrees
 from enum import Enum
+from abc import ABC, abstractmethod
+from copy import copy
 
 
 class Shapes(Enum):
@@ -25,19 +28,51 @@ screen = getscreen()
 w = screen.window_width()
 h = screen.window_height()
 
+
+class Vector2:
+    def __init__(self, x: int = 0, y: int = 0):
+        self.x = x
+        self.y = y
+
+    @property
+    def val(self) -> tuple[int, int]:
+        return self.x, self.y
+
+    def __add__(self, shift: Self) -> Vector2:
+        new_vector = copy(self)
+        new_vector.x += shift.x
+        new_vector.y += shift.y
+        return new_vector
+
+
+class AbstractShape(ABC):
+    @abstractmethod
+    def draw(self) -> None:
+        return NotImplemented
+
+
+class Line(AbstractShape):
+    def __init__(self, A: Vector2, B: Vector2):
+        self.A = A
+        self.B = B
+
+    def draw(self):
+        up()
+        goto(self.A.val)
+        down()
+        goto(self.B.val)
+        return self
+
+
 def coords(x, y):
     x = x - (w/2)
     y = y - (h/2)
     return x, y
 
 def line(x1, y1, x2, y2):
-    x1, y1 = coords(x1, y1)
-    x2, y2 = coords(x2, y2)
-    penup()
-    goto(x1, y1)
-    pendown()
-    goto(x2, y2)
-    penup()
+    a = Vector2(x1, y1)
+    b = Vector2(x2, y2)
+    a = Line(a, b).draw()
 
 def rect(x1,y1,x2,y2):
     begin_fill()
