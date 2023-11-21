@@ -2,14 +2,19 @@ import turtle
 from math import sqrt, asin, degrees
 
 
-t = turtle.Turtle
+LINE_WIDTH = 2
+DRAW_SPEED = 0
+INVERTED_SIN_60 = 2 / sqrt(3)
+HALF_OF_ANGLE = 30
+EQUALITERAL_ANGLE = 120
+STRAIGHT_ANGLE = 180
 
 t = turtle.Turtle()
-t.width(2)
+t.width(LINE_WIDTH)
 sc = turtle.getscreen()
 w, h = sc.window_width(), sc.window_height()
 print(w, h)
-t.speed(100)
+t.speed(DRAW_SPEED)
 
 def coords(x, y):
     x = x - (w/2)
@@ -46,19 +51,19 @@ def tri(x1,y1,x2,y2):
     x1, y1 = coords(x1, y1)
     x2, y2 = coords(x2, y2)
     h = sqrt((x2-x1)**2 + (y2-y1)**2)
-    a = 2 * h / sqrt(3)
+    a = h * INVERTED_SIN_60
     c = abs(y2 - y1)
     t.penup()
     t.goto(x1,y1)
-    t.left(degrees(asin(c/h)) + 30)
+    t.left(degrees(asin(c/h)) + HALF_OF_ANGLE)
     t.pendown()
     t.begin_fill()
     t.forward(a)
-    t.right(120)
+    t.right(EQUALITERAL_ANGLE)
     t.forward(a)
-    t.right(120)
+    t.right(EQUALITERAL_ANGLE)
     t.forward(a)
-    t.left(210 - degrees((asin(c/h))))
+    t.left(STRAIGHT_ANGLE + HALF_OF_ANGLE - degrees((asin(c/h))))
     t.end_fill()
 
 
