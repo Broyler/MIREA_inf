@@ -1,16 +1,7 @@
 from __future__ import annotations
 from turtle import *
 from math import sqrt, asin, degrees
-from enum import Enum
 from abc import ABC, abstractmethod
-from copy import copy
-
-
-class Shapes(Enum):
-    LINE = 1
-    RECTANGLE = 2
-    CIRCLE = 3
-    TRIANGLE = 4
 
 
 LINE_WIDTH = 2
@@ -19,7 +10,6 @@ INVERTED_SIN_60 = 2 / sqrt(3)
 HALF_OF_ANGLE = 30
 EQUILATERAL_ANGLE = 120
 STRAIGHT_ANGLE = 180
-FINISH_ACTION = len(Shapes) + 1
 
 width(LINE_WIDTH)
 speed(DRAW_SPEED)
@@ -34,6 +24,7 @@ def drawable(func):
         up()
         goto(args[0].a.val)
         down()
+        color(args[0].Meta.color)
         begin_fill()
         output = func(*args, **kwargs)
         end_fill()
@@ -54,15 +45,15 @@ class Vector2:
         return self.x, self.y
 
     @staticmethod
-    def xdiff(a, b):
+    def xdiff(a, b) -> int:
         return b.x - a.x
 
     @staticmethod
-    def ydiff(a, b):
+    def ydiff(a, b) -> int:
         return b.y - a.y
 
     @staticmethod
-    def diff(a, b):
+    def diff(a, b) -> tuple[int, int]:
         return Vector2.xdiff(a, b), Vector2.ydiff(a, b)
 
 
@@ -73,7 +64,15 @@ class AbstractShape(ABC):
 
 
 class Line(AbstractShape):
-    def __init__(self, a: Vector2, b: Vector2):
+    class Meta:
+        name = "отрезок"
+        color = "#27083d"
+        args = ["aX", "aY", "bX", "bY"]
+
+    def __init__(self, x1: int, y1: int, x2: int, y2: int):
+        a = Vector2(x1, y1)
+        b = Vector2(x2, y2)
+
         if a == b:
             raise ValueError("Ошибка. Точки начала и конца совпадают.")
 
@@ -87,6 +86,11 @@ class Line(AbstractShape):
 
 
 class Rectangle(Line):
+    class Meta:
+        name = "прямоугольник"
+        color = "#00add7"
+        args = ["aX", "aY", "bX", "bY"]
+
     @drawable
     def draw(self) -> Rectangle:
         goto(self.b.x, self.a.y)
@@ -97,7 +101,13 @@ class Rectangle(Line):
 
 
 class Circle(AbstractShape):
-    def __init__(self, a: Vector2, r: int):
+    class Meta:
+        name = "окружность"
+        color = "#c1300d"
+        args = ["X", "Y", "R"]
+
+    def __init__(self, x: int, y: int, r: int):
+        a = Vector2(x, y)
         self.a = a
         self.r = r
 
@@ -108,6 +118,11 @@ class Circle(AbstractShape):
 
 
 class Triangle(Line):
+    class Meta:
+        name = "р\\с треугольник"
+        color = "#e6d500"
+        args = ["aX", "aY", "hX", "hY"]
+
     @property
     def height(self) -> int:
         a, b = Vector2.diff(self.a, self.b)
@@ -142,79 +157,57 @@ class Triangle(Line):
         return self
 
 
-def line(x1, y1, x2, y2):
-    a = Vector2(x1, y1)
-    b = Vector2(x2, y2)
-    a = Line(a, b).draw()
+shapes = [
+    Line,
+    Rectangle,
+    Circle,
+    Triangle
+]
+objects = []
+FINISH_ACTION = len(shapes) + 1
 
-def rect(x1,y1,x2,y2):
-    a = Vector2(x1, y1)
-    b = Vector2(x2, y2)
-    a = Rectangle(a, b).draw()
 
-def circ(x1,y1,R):
-    a = Circle(Vector2(x1, y1 - R), R).draw()
-
-def tri(x1,y1,x2,y2):
-    a = Vector2(x1, y1)
-    b = Vector2(x2, y2)
-    a = Triangle(a, b).draw()
+def info_msg() -> str:
+    output = "Выберите один из вариантов:\n"
+    for index, i in enumerate(shapes):
+        output += f"  {index + 1} - {i.Meta.name}\n"
+    output += "  5 - Нарисовать\n"
+    return output
 
 
 while True:
-    ch = input("Выберите фигуру:\n1 - Отрезок\n2 - Прямоугольник\n3 - Круг\n4 - Равносторонний треугольник\n5 - Нарисовать\n")
-    if ch == str(Shapes.LINE.value):
-        try:
-            x1 = int(input("X1 = "))
-            y1 = int(input("Y1 = "))
-            x2 = int(input("X2 = "))
-            y2 = int(input("Y2 = "))
-        except:
-            print("Ошибка ввода!!!")
-            continue
-        color("#27083d")
-        line(x1,y1,x2,y2)
+    sel = input(info_msg())
+    if not sel.isdigit():
+        print("Пожалуйста, введите корректное числовое значение.")
+        continue
 
-    elif ch == str(Shapes.RECTANGLE.value):
-        try:
-            x1 = int(input("X1 = "))
-            y1 = int(input("Y1 = "))
-            x2 = int(input("X2 = "))
-            y2 = int(input("Y2 = "))
-        except:
-            print("Ошибка ввода!!!")
-            continue
-        color("#00add7")
-        rect(x1,y1,x2,y2)
+    sel = int(sel)
 
-    elif ch == str(Shapes.CIRCLE.value):
-        try:
-            x1 = int(input("X1 = "))
-            y1 = int(input("Y1 = "))
-            R = int(input("R = "))
-        except:
-            print("Ошибка ввода!!!")
-            continue
-        color("#c1300d")
-        circ(x1,y1,R)
-
-    elif ch == str(Shapes.TRIANGLE.value):
-        try:
-            x1 = int(input("X1 = "))
-            y1 = int(input("Y1 = "))
-            x2 = int(input("X2 = "))
-            y2 = int(input("Y2 = "))
-        except:
-            print("Ошибка ввода!!!")
-            continue
-        color("#e6d500")
-        tri(x1,y1,x2,y2)
-
-    elif ch == str(FINISH_ACTION):
+    if sel == FINISH_ACTION:
         break
 
-    else:
-        print("Ошибка!!!")
+    if not 0 < sel < FINISH_ACTION:
+        print("Нет такой опции.")
+        continue
 
+    shape = shapes[sel - 1]
+    init_args = []
+    for arg in shape.Meta.args:
+        inp = input(f"Введите {arg}: ")
+        try:
+            inp = int(inp)
+
+        except ValueError:
+            print("Пожалуйста, введите корректное числовое значение.")
+            break
+
+        init_args.append(int(inp))
+
+    else:
+        obj = shape(*init_args)
+        objects.append(obj)
+
+for obj in objects:
+    obj.draw()
 
 done()
