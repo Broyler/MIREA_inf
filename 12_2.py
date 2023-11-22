@@ -46,15 +46,12 @@ class Vector2:
         self.x = x
         self.y = y
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
     @property
     def val(self) -> tuple[int, int]:
         return self.x, self.y
-
-    def __add__(self, shift: Vector2) -> Vector2:
-        new_vector = copy(self)
-        new_vector.x += shift.x
-        new_vector.y += shift.y
-        return new_vector
 
     @staticmethod
     def xdiff(a, b):
@@ -77,6 +74,9 @@ class AbstractShape(ABC):
 
 class Line(AbstractShape):
     def __init__(self, a: Vector2, b: Vector2):
+        if a == b:
+            raise ValueError("Ошибка. Точки начала и конца совпадают.")
+
         self.a = a
         self.b = b
 
@@ -128,10 +128,6 @@ class Triangle(Line):
     def alpha(self) -> int:
         a = asin(self.normal / self.height)
         a = degrees(a)
-
-        if a is None:
-            raise ValueError
-
         return int(a)
 
     @drawable
