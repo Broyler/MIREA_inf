@@ -17,7 +17,7 @@ LINE_WIDTH = 2
 DRAW_SPEED = 0
 INVERTED_SIN_60 = 2 / sqrt(3)
 HALF_OF_ANGLE = 30
-EQUALITERAL_ANGLE = 120
+EQUILATERAL_ANGLE = 120
 STRAIGHT_ANGLE = 180
 FINISH_ACTION = len(Shapes) + 1
 
@@ -44,6 +44,18 @@ class Vector2:
         new_vector.y += shift.y
         return new_vector
 
+    @staticmethod
+    def xdiff(a, b):
+        return b.x - a.x
+
+    @staticmethod
+    def ydiff(a, b):
+        return b.y - a.y
+
+    @staticmethod
+    def diff(a, b):
+        return Vector2.xdiff(a, b), Vector2.ydiff(a, b)
+
 
 class AbstractShape(ABC):
     @abstractmethod
@@ -65,9 +77,6 @@ class Line(AbstractShape):
 
 
 class Rectangle(Line):
-    def __init__(self, A: Vector2, B: Vector2):
-        super().__init__(A, B)
-
     def draw(self) -> Rectangle:
         up()
         goto(self.A.val)
@@ -96,6 +105,44 @@ class Circle(AbstractShape):
         return self
 
 
+class Triangle(Line):
+    @property
+    def height(self) -> int:
+        a, b = Vector2.diff(self.A, self.B)
+        h = sqrt(a ** 2 + b ** 2)
+        return round(h)
+
+    @property
+    def side(self) -> int:
+        a = self.height * INVERTED_SIN_60
+        return round(a)
+
+    @property
+    def normal(self) -> int:
+        a = Vector2.ydiff(self.A, self.B)
+        return abs(a)
+
+    @property
+    def alpha(self) -> int:
+        a = asin(self.normal / self.height)
+        return degrees(a)
+
+    def draw(self) -> Triangle:
+        up()
+        goto(self.A.val)
+        down()
+        begin_fill()
+
+        left(self.alpha + HALF_OF_ANGLE)
+
+        for _ in range(3):
+            forward(self.side)
+            right(EQUILATERAL_ANGLE)
+
+        right(self.alpha + HALF_OF_ANGLE)
+        end_fill()
+
+
 def coords(x, y):
     x = x - (w/2)
     y = y - (h/2)
@@ -116,23 +163,9 @@ def circ(x1,y1,R):
     a = Circle(Vector2(x1, y1 - R), R).draw()
 
 def tri(x1,y1,x2,y2):
-    x1, y1 = coords(x1, y1)
-    x2, y2 = coords(x2, y2)
-    h = sqrt((x2-x1)**2 + (y2-y1)**2)
-    a = h * INVERTED_SIN_60
-    c = abs(y2 - y1)
-    penup()
-    goto(x1,y1)
-    left(degrees(asin(c/h)) + HALF_OF_ANGLE)
-    pendown()
-    begin_fill()
-    forward(a)
-    right(EQUALITERAL_ANGLE)
-    forward(a)
-    right(EQUALITERAL_ANGLE)
-    forward(a)
-    left(STRAIGHT_ANGLE + HALF_OF_ANGLE - degrees((asin(c/h))))
-    end_fill()
+    a = Vector2(x1, y1)
+    b = Vector2(x2, y2)
+    a = Triangle(a, b).draw()
 
 
 while True:
