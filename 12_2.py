@@ -81,6 +81,21 @@ class Rectangle(Line):
         return self
 
 
+class Circle(AbstractShape):
+    def __init__(self, A: Vector2, r: int):
+        self.A = A
+        self.r = r
+
+    def draw(self) -> Circle:
+        up()
+        goto(self.A.val)
+        down()
+        begin_fill()
+        circle(self.r)
+        end_fill()
+        return self
+
+
 def coords(x, y):
     x = x - (w/2)
     y = y - (h/2)
@@ -98,13 +113,7 @@ def rect(x1,y1,x2,y2):
     a = Rectangle(a, b).draw()
 
 def circ(x1,y1,R):
-    x1, y1 = coords(x1, y1-R)
-    penup()
-    goto(x1,y1)
-    begin_fill()
-    pendown()
-    circle(R)
-    end_fill()
+    a = Circle(Vector2(x1, y1 - R), R).draw()
 
 def tri(x1,y1,x2,y2):
     x1, y1 = coords(x1, y1)
