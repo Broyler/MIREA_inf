@@ -29,6 +29,18 @@ w = screen.window_width()
 h = screen.window_height()
 
 
+def drawable(func):
+    def wrapper(*args, **kwargs):
+        up()
+        goto(args[0].a.val)
+        down()
+        begin_fill()
+        output = func(*args, **kwargs)
+        end_fill()
+        return output
+    return wrapper
+
+
 class Vector2:
     def __init__(self, x: int = 0, y: int = 0):
         self.x = x
@@ -38,7 +50,7 @@ class Vector2:
     def val(self) -> tuple[int, int]:
         return self.x, self.y
 
-    def __add__(self, shift: Self) -> Vector2:
+    def __add__(self, shift: Vector2) -> Vector2:
         new_vector = copy(self)
         new_vector.x += shift.x
         new_vector.y += shift.y
@@ -59,58 +71,48 @@ class Vector2:
 
 class AbstractShape(ABC):
     @abstractmethod
-    def draw(self) -> None:
+    def draw(self):
         return NotImplemented
 
 
 class Line(AbstractShape):
-    def __init__(self, A: Vector2, B: Vector2):
-        self.A = A
-        self.B = B
+    def __init__(self, a: Vector2, b: Vector2):
+        self.a = a
+        self.b = b
 
+    @drawable
     def draw(self) -> Line:
-        up()
-        goto(self.A.val)
-        down()
-        goto(self.B.val)
+        goto(self.b.val)
         return self
 
 
 class Rectangle(Line):
+    @drawable
     def draw(self) -> Rectangle:
-        up()
-        goto(self.A.val)
-        down()
-        begin_fill()
-        goto(self.B.x, self.A.y)
-        goto(self.B.x, self.B.y)
-        goto(self.A.x, self.B.y)
-        goto(self.A.x, self.A.y)
-        end_fill()
+        goto(self.b.x, self.a.y)
+        goto(self.b.x, self.b.y)
+        goto(self.a.x, self.b.y)
+        goto(self.a.x, self.a.y)
         return self
 
 
 class Circle(AbstractShape):
-    def __init__(self, A: Vector2, r: int):
-        self.A = A
+    def __init__(self, a: Vector2, r: int):
+        self.a = a
         self.r = r
 
+    @drawable
     def draw(self) -> Circle:
-        up()
-        goto(self.A.val)
-        down()
-        begin_fill()
         circle(self.r)
-        end_fill()
         return self
 
 
 class Triangle(Line):
     @property
     def height(self) -> int:
-        a, b = Vector2.diff(self.A, self.B)
-        h = sqrt(a ** 2 + b ** 2)
-        return round(h)
+        a, b = Vector2.diff(self.a, self.b)
+        height = sqrt(a ** 2 + b ** 2)
+        return round(height)
 
     @property
     def side(self) -> int:
@@ -119,20 +121,21 @@ class Triangle(Line):
 
     @property
     def normal(self) -> int:
-        a = Vector2.ydiff(self.A, self.B)
+        a = Vector2.ydiff(self.a, self.b)
         return abs(a)
 
     @property
     def alpha(self) -> int:
         a = asin(self.normal / self.height)
-        return degrees(a)
+        a = degrees(a)
 
+        if a is None:
+            raise ValueError
+
+        return int(a)
+
+    @drawable
     def draw(self) -> Triangle:
-        up()
-        goto(self.A.val)
-        down()
-        begin_fill()
-
         left(self.alpha + HALF_OF_ANGLE)
 
         for _ in range(3):
@@ -140,13 +143,7 @@ class Triangle(Line):
             right(EQUILATERAL_ANGLE)
 
         right(self.alpha + HALF_OF_ANGLE)
-        end_fill()
-
-
-def coords(x, y):
-    x = x - (w/2)
-    y = y - (h/2)
-    return x, y
+        return self
 
 
 def line(x1, y1, x2, y2):
