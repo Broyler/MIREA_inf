@@ -56,11 +56,28 @@ class Line(AbstractShape):
         self.A = A
         self.B = B
 
-    def draw(self):
+    def draw(self) -> Line:
         up()
         goto(self.A.val)
         down()
         goto(self.B.val)
+        return self
+
+
+class Rectangle(Line):
+    def __init__(self, A: Vector2, B: Vector2):
+        super().__init__(A, B)
+
+    def draw(self) -> Rectangle:
+        up()
+        goto(self.A.val)
+        down()
+        begin_fill()
+        goto(self.B.x, self.A.y)
+        goto(self.B.x, self.B.y)
+        goto(self.A.x, self.B.y)
+        goto(self.A.x, self.A.y)
+        end_fill()
         return self
 
 
@@ -69,18 +86,16 @@ def coords(x, y):
     y = y - (h/2)
     return x, y
 
+
 def line(x1, y1, x2, y2):
     a = Vector2(x1, y1)
     b = Vector2(x2, y2)
     a = Line(a, b).draw()
 
 def rect(x1,y1,x2,y2):
-    begin_fill()
-    line(x1,y1,x1,y2)
-    line(x1,y2,x2,y2)
-    line(x2,y2,x2,y1)
-    line(x2,y1,x1,y1)
-    end_fill()
+    a = Vector2(x1, y1)
+    b = Vector2(x2, y2)
+    a = Rectangle(a, b).draw()
 
 def circ(x1,y1,R):
     x1, y1 = coords(x1, y1-R)
