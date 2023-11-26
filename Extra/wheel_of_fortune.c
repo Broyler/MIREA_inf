@@ -25,13 +25,15 @@ int isLetterSecret(char letter, char word[80]) {
 	return 0;
 }
 
-void printWord(char word[80], char guessed[26], int wordLen) {
+int printWord(char word[80], char guessed[26], int wordLen) {
+	int correct = 0;
 	int flag;
 	for (int i = 0; i < wordLen; ++i) {
 		flag = 0;
 		for (int j = 0; j < 26; ++j) {
 			if (word[i] == guessed[j]) {
 				printf("%c", word[i]);
+				correct++;
 				flag = 1;
 				break;
 			}
@@ -42,6 +44,7 @@ void printWord(char word[80], char guessed[26], int wordLen) {
 		printf(" ");
 	}
 	printf("\n");
+	return correct == wordLen ? 1 : 0;
 }
 
 int main(void) {
@@ -59,10 +62,13 @@ int main(void) {
 	scanf("%d", &players);
 
 	for (;;) {
-		printWord(word, guessed, wordLen);
+		if (printWord(word, guessed, wordLen) == 1) {
+			printf("Player %d wins! The word was %s.\n", currentPlayer, word);
+			return 0;
+		}
 		printf("\nPlayer %d, guess a letter: ", currentPlayer);
 		scanf("%c", &guess);
-		printf("GDX: %c\n", (int)guess);
+		if ((int)guess == 10) continue;
 
 		if (isLetterGuessed(guess, guessed) == 1) continue;
 		guessed[guessedAmount] = guess;
