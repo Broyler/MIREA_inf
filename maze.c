@@ -5,6 +5,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 #endif
 
 /*
@@ -24,6 +25,7 @@ gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 #define IS_LINUX 1
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #endif
 
 #define WINDOWS_DEBUG 0
@@ -41,6 +43,7 @@ gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 #define PLAYER_WIDTH (int)(2 * LINE_WIDTH)
 #define PLAYER_HEIGHT (int)(2 * LINE_HEIGHT)
 #define TELEPORT_THRESHOLD 9.0
+#define INCLUDE_JUMPSCARE 1
 
 #define WALL(x, y, w, h, renderer) (SDL_RenderFillRect(renderer, &(SDL_Rect){x, y, w, h}))
 
@@ -261,14 +264,20 @@ int main(int argc, char *argv[]) {
     SDL_Window* window = NULL;
     lastFrameTime = SDL_GetPerformanceCounter();
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         printf("SDL Initialization Error! SDL_Error: %s\n", SDL_GetError());
         return -1;
     }
 
     if (TTF_Init() < 0) {
         printf("TTF Initialization Error! TTF_Error: %s\n", TTF_GetError());
-        return -1;
+        return -4;
+    }
+
+    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+    {
+        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+        return -3;
     }
 
     window = SDL_CreateWindow("Maze Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -276,19 +285,11 @@ int main(int argc, char *argv[]) {
         printf("SDL Window can't be created! SDL_Error: %s\n", SDL_GetError());
         return -2;
     }
+
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_Texture* mapTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
-    TTF_Font* winFont;
-    SDL_Rect winMsgRect;
-
-    if (IS_LINUX == 0) {
-        winFont = TTF_OpenFont("C:\\Windows\\Fonts\\courer.fon", 24);
-        winMsgRect = (SDL_Rect){SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 10};
-    }
-    else {
-        winFont = TTF_OpenFont("/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf", 24);
-        winMsgRect = (SDL_Rect){SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 10};   
-    }
+    TTF_Font* winFont = TTF_OpenFont("Rubik.ttf", 24);
+    SDL_Rect winMsgRect = {SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 10};
     SDL_Color whiteColor = {255, 255, 255};
     SDL_Surface* winSurface = TTF_RenderText_Solid(winFont, "You Win!!!", whiteColor);
     SDL_Texture* winTex = SDL_CreateTextureFromSurface(renderer, winSurface);
@@ -299,6 +300,12 @@ int main(int argc, char *argv[]) {
     drawWalls(renderer);
     SDL_SetRenderTarget(renderer, NULL);
 
+    SDL_Surface* image = SDL_LoadBMP("bitmap.bmp");
+    SDL_Texture* imageTex = SDL_CreateTextureFromSurface(renderer, image);
+
+    Mix_Chunk* gJumpscare = Mix_LoadWAV("xsdltex.wav");
+    bool isPlaying = false;
+
     uint32_t ticks = SDL_GetTicks();
     uint32_t delta;
     uint32_t lastTicks = ticks;
@@ -306,7 +313,6 @@ int main(int argc, char *argv[]) {
     SDL_Event e;
     bool run = true;
     while (run) {
-
         ticks = SDL_GetTicks();
         delta = ticks - lastTicks;
 
@@ -341,6 +347,18 @@ int main(int argc, char *argv[]) {
 
         if (isGameWon) {
             SDL_RenderCopy(renderer, winTex, NULL, &winMsgRect);
+        }
+
+        if (INCLUDE_JUMPSCARE == 1) {
+            if (playerX >= WPAD + 3 * CWIDTH && playerX <= WPAD + 4 * CWIDTH) {
+                if (playerY >= HPAD + 4 * CHEIGHT && playerY <= HPAD + 5 * CHEIGHT) {
+                    SDL_RenderCopy(renderer, imageTex, NULL, NULL);
+                    if (!isPlaying) {
+                        Mix_PlayChannel(-1, gJumpscare, 0);
+                        isPlaying = true;
+                    }
+                }
+            }
         }
 
         drawPlayer(renderer);
