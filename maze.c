@@ -14,10 +14,12 @@ Compilation:
 Requires SDL2, SDL2_ttf
 
 Windows:
-gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+GLOBAL: gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+MULTI: gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3
 
 Linux:
-gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+LOCAL: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+MULTI: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3
 
 */
 
@@ -28,7 +30,7 @@ gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtun
 #include <SDL2/SDL_mixer.h>
 #endif
 
-#define WINDOWS_DEBUG 0
+#define WINDOWS_DEBUG 1
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
 #define CELLS 10
