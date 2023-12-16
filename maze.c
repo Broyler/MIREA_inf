@@ -336,8 +336,6 @@ int main(int argc, char *argv[]) {
         deltaTime = (double)((SDL_GetPerformanceCounter() - lastFrameTime) / (double)(SDL_GetPerformanceFrequency()));
         lastFrameTime = SDL_GetPerformanceCounter();
 
-        printf("FPS: %lf\n", 1.0f / deltaTime);
-
         SDL_RenderCopy(renderer, mapTex, NULL, NULL);
         applyInput();
 
