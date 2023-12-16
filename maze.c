@@ -26,7 +26,7 @@ gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 #include <SDL2/SDL_ttf.h>
 #endif
 
-#define WINDOWS_DEBUG 1
+#define WINDOWS_DEBUG 0
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
 #define CELLS 10
@@ -50,9 +50,9 @@ double velX = 0;
 double velY = 0;
 double inpX = 0;
 double inpY = 0;
-double acceleration = 7.0f;
-double deceleration = 19.4f;
-double maxVel = 5.0f;
+double acceleration = 10.0f;
+double deceleration = 15.5f;
+double maxVel = 4.0f;
 uint64_t lastFrameTime = 0;
 double deltaTime = 0;
 bool isGameWon = false;
@@ -299,9 +299,24 @@ int main(int argc, char *argv[]) {
     drawWalls(renderer);
     SDL_SetRenderTarget(renderer, NULL);
 
+    uint32_t ticks = SDL_GetTicks();
+    uint32_t delta;
+    uint32_t lastTicks = ticks;
+
     SDL_Event e;
     bool run = true;
     while (run) {
+
+        ticks = SDL_GetTicks();
+        delta = ticks - lastTicks;
+
+        if (delta > 1000 / 60.0) {
+            lastTicks = ticks;
+        }
+        else {
+            continue;
+        }
+
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
                 case SDL_QUIT:
@@ -321,6 +336,8 @@ int main(int argc, char *argv[]) {
         deltaTime = (double)((SDL_GetPerformanceCounter() - lastFrameTime) / (double)(SDL_GetPerformanceFrequency()));
         lastFrameTime = SDL_GetPerformanceCounter();
 
+        printf("FPS: %lf\n", 1.0f / deltaTime);
+
         SDL_RenderCopy(renderer, mapTex, NULL, NULL);
         applyInput();
 
@@ -334,5 +351,10 @@ int main(int argc, char *argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    if (IS_LINUX == 0 && WINDOWS_DEBUG == 1) {
+        system("pause");
+    }
+
     return 0;
 }
