@@ -14,10 +14,10 @@ Compilation:
 Requires SDL2, SDL2_ttf
 
 Windows:
-gcc -o maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 
 Linux:
-gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 
 */
 
@@ -43,7 +43,6 @@ gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 #define PLAYER_WIDTH (int)(2 * LINE_WIDTH)
 #define PLAYER_HEIGHT (int)(2 * LINE_HEIGHT)
 #define TELEPORT_THRESHOLD 9.0
-#define INCLUDE_JUMPSCARE 1
 
 #define WALL(x, y, w, h, renderer) (SDL_RenderFillRect(renderer, &(SDL_Rect){x, y, w, h}))
 
@@ -56,6 +55,7 @@ double inpY = 0;
 double acceleration = 10.0f;
 double deceleration = 15.5f;
 double maxVel = 4.0f;
+bool INCLUDE_JUMPSCARE = true;
 uint64_t lastFrameTime = 0;
 double deltaTime = 0;
 bool isGameWon = false;
@@ -156,6 +156,9 @@ void handleInput(SDL_KeyboardEvent *key) {
         case 0x1A:
             inpY = -(int)(key->type == SDL_KEYDOWN);
             break;
+
+        case 0x0d:
+            INCLUDE_JUMPSCARE = false;
 
         default:
             break;
@@ -349,7 +352,7 @@ int main(int argc, char *argv[]) {
             SDL_RenderCopy(renderer, winTex, NULL, &winMsgRect);
         }
 
-        if (INCLUDE_JUMPSCARE == 1) {
+        if (INCLUDE_JUMPSCARE) {
             if (playerX >= WPAD + 3 * CWIDTH && playerX <= WPAD + 4 * CWIDTH) {
                 if (playerY >= HPAD + 4 * CHEIGHT && playerY <= HPAD + 5 * CHEIGHT) {
                     SDL_RenderCopy(renderer, imageTex, NULL, NULL);
