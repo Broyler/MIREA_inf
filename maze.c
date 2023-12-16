@@ -26,6 +26,7 @@ gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
 #include <SDL2/SDL_ttf.h>
 #endif
 
+#define WINDOWS_DEBUG 1
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
 #define CELLS 10
@@ -126,7 +127,12 @@ void drawWalls(SDL_Renderer* renderer) {
 }
 
 void drawPlayer(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 0x27, 0xd1, 0x0d, 0xFF);
+    if (isGameWon) {
+        SDL_SetRenderDrawColor(renderer, 0xd1, 0x2b, 0x1f, 0xFF);
+    }
+    else {
+        SDL_SetRenderDrawColor(renderer, 0x27, 0xd1, 0x0d, 0xFF);
+    }
     WALL((int)(playerX), (int)(playerY), PLAYER_WIDTH, PLAYER_HEIGHT, renderer);
 }
 
@@ -248,8 +254,11 @@ void applyInput() {
 }
 
 int main(int argc, char *argv[]) {
+    if (IS_LINUX == 0 && WINDOWS_DEBUG == 1) {
+        AllocConsole();
+        freopen("CONOUT$", "w", stdout);
+    }
     SDL_Window* window = NULL;
-    //SDL_Surface* screen = NULL;
     lastFrameTime = SDL_GetPerformanceCounter();
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -267,17 +276,22 @@ int main(int argc, char *argv[]) {
         printf("SDL Window can't be created! SDL_Error: %s\n", SDL_GetError());
         return -2;
     }
-    // screen = SDL_GetWindowSurface(window);
-    // SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
-    // SDL_UpdateWindowSurface(window);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_Texture* mapTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+    TTF_Font* winFont;
+    SDL_Rect winMsgRect;
 
-    TTF_Font* sansFont = TTF_OpenFont("Kalam-Bold.ttf", 24);
+    if (IS_LINUX == 0) {
+        winFont = TTF_OpenFont("C:\\Windows\\Fonts\\courer.fon", 24);
+        winMsgRect = (SDL_Rect){SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 10};
+    }
+    else {
+        winFont = TTF_OpenFont("/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf", 24);
+        winMsgRect = (SDL_Rect){SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 10};   
+    }
     SDL_Color whiteColor = {255, 255, 255};
-    SDL_Surface* winSurface = TTF_RenderText_Solid(sansFont, "You Win!!!", whiteColor);
+    SDL_Surface* winSurface = TTF_RenderText_Solid(winFont, "You Win!!!", whiteColor);
     SDL_Texture* winTex = SDL_CreateTextureFromSurface(renderer, winSurface);
-    SDL_Rect winMsgRect = {SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4};
 
     SDL_SetRenderTarget(renderer, mapTex);
     SDL_SetRenderDrawColor(renderer, 0x3e, 0x3e, 0x3e, 0xFF);
