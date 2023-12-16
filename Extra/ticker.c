@@ -30,6 +30,7 @@ int main(void) {
 		for (int i = 0; i < len - (ptr - space >= 0 ? ptr - space : 0); ++i) {
 			printf("%c", lane[i]);
 		}
+        printf("\n");
 		sleep(timeInterval);
 		ptr++;
 		if (ptr >= space + len) ptr = 0;

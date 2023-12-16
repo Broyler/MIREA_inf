@@ -109,7 +109,9 @@ class Circle(AbstractShape):
     def __init__(self, x: int, y: int, r: int):
         a = Vector2(x, y)
         self.a = a
-        self.r = r
+        if r <= 0:
+            print("Ошибка. Используйте положительный радиус")
+        self.r = abs(r)
 
     @drawable
     def draw(self) -> Circle:
