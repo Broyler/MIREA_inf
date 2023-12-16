@@ -1,7 +1,30 @@
 #include <stdio.h>
 #include <stdbool.h>
+#ifdef _WIN32
+#define IS_LINUX 0
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+#include <SDL_ttf.h>
+#endif
+
+/*
+
+Compilation:
+Requires SDL2, SDL2_ttf
+
+Windows:
+gcc -o maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+
+Linux:
+gcc -o maze.exe maze.c -w -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
+
+*/
+
+#ifdef linux
+#define IS_LINUX 1
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#endif
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
@@ -224,9 +247,9 @@ void applyInput() {
     }
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
     SDL_Window* window = NULL;
-    SDL_Surface* screen = NULL;
+    //SDL_Surface* screen = NULL;
     lastFrameTime = SDL_GetPerformanceCounter();
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -244,14 +267,13 @@ int main(void) {
         printf("SDL Window can't be created! SDL_Error: %s\n", SDL_GetError());
         return -2;
     }
-    screen = SDL_GetWindowSurface(window);
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
-    SDL_UpdateWindowSurface(window);
+    // screen = SDL_GetWindowSurface(window);
+    // SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
+    // SDL_UpdateWindowSurface(window);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_Texture* mapTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     TTF_Font* sansFont = TTF_OpenFont("Kalam-Bold.ttf", 24);
-    printf("ax: %s\n", TTF_GetError());
     SDL_Color whiteColor = {255, 255, 255};
     SDL_Surface* winSurface = TTF_RenderText_Solid(sansFont, "You Win!!!", whiteColor);
     SDL_Texture* winTex = SDL_CreateTextureFromSurface(renderer, winSurface);
