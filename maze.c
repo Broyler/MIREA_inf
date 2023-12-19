@@ -4,33 +4,31 @@
 #define IS_LINUX 0
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-#include <SDL_ttf.h>
 #include <SDL_mixer.h>
 #endif
 
 /*
 
 Compilation:
-Requires SDL2, SDL2_ttf
+Requires SDL2, SDL_mixer
 
 Windows:
-GLOBAL: gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
-MULTI: gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3
+LOCAL: gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2 -O3 -march=native -mtune=native
+MULTI: gcc -o Build/maze.exe maze.c -IC:\w64devkit\include\SDL2 -LC:\w64devkit\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2_mixer -lSDL2 -O3
 
 Linux:
-LOCAL: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3 -march=native -mtune=native
-MULTI: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3
+LOCAL: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2 -O3 -march=native -mtune=native
+MULTI: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2 -O3
 
 */
 
 #ifdef linux
 #define IS_LINUX 1
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #endif
 
-#define WINDOWS_DEBUG 1
+#define WINDOWS_DEBUG 0
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
 #define CELLS 10
@@ -45,6 +43,9 @@ MULTI: gcc -o maze.exe maze.c -w -lSDL2_mixer -lSDL2_ttf -lSDL2 -O3
 #define PLAYER_WIDTH (int)(2 * LINE_WIDTH)
 #define PLAYER_HEIGHT (int)(2 * LINE_HEIGHT)
 #define TELEPORT_THRESHOLD 9.0
+
+#define WINTEX_WIDTH (int)(62 * 4)
+#define WINTEX_HEIGHT (int)(48 * 4)
 
 #define WALL(x, y, w, h, renderer) (SDL_RenderFillRect(renderer, &(SDL_Rect){x, y, w, h}))
 
@@ -274,11 +275,6 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (TTF_Init() < 0) {
-        printf("TTF Initialization Error! TTF_Error: %s\n", TTF_GetError());
-        return -4;
-    }
-
     if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
     {
         printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
@@ -293,11 +289,10 @@ int main(int argc, char *argv[]) {
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_Texture* mapTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
-    TTF_Font* winFont = TTF_OpenFont("Rubik.ttf", 24);
-    SDL_Rect winMsgRect = {SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 10};
-    SDL_Color whiteColor = {255, 255, 255};
-    SDL_Surface* winSurface = TTF_RenderText_Solid(winFont, "You Win!!!", whiteColor);
-    SDL_Texture* winTex = SDL_CreateTextureFromSurface(renderer, winSurface);
+    
+    SDL_Surface* imageWin = SDL_LoadBMP("win.bmp");
+    SDL_Texture* imageWinTex = SDL_CreateTextureFromSurface(renderer, imageWin);
+    SDL_Rect winMsgRect = {(int)((SCREEN_WIDTH - WINTEX_WIDTH) / 2), (int)((SCREEN_HEIGHT - WINTEX_HEIGHT) / 2), WINTEX_WIDTH, WINTEX_HEIGHT};
 
     SDL_SetRenderTarget(renderer, mapTex);
     SDL_SetRenderDrawColor(renderer, 0x3e, 0x3e, 0x3e, 0xFF);
@@ -351,7 +346,7 @@ int main(int argc, char *argv[]) {
         applyInput();
 
         if (isGameWon) {
-            SDL_RenderCopy(renderer, winTex, NULL, &winMsgRect);
+            SDL_RenderCopy(renderer, imageWinTex, NULL, &winMsgRect);
         }
 
         if (INCLUDE_JUMPSCARE) {
